@@ -31,7 +31,7 @@ struct low_pass_filter {
 
 template <typename T = double, typename timestamp_t = double>
 struct one_euro_filter {
-    one_euro_filter(double _freq, T _mincutoff, T _beta, T _dcutoff) : freq{_freq}, mincutoff{_mincutoff}, beta{_beta}, dcutoff{_dcutoff}, last_time_{-1} {}
+    one_euro_filter(double _freq, double _mincutoff, T _beta, T _dcutoff) : freq{_freq}, mincutoff{_mincutoff}, beta{_beta}, dcutoff{_dcutoff}, last_time_{-1} {}
     T operator()(T x, timestamp_t t = -1) {
       T dx{0};
 
@@ -48,8 +48,8 @@ struct one_euro_filter {
       return xfilt_(x, alpha(cutoff));
     }
 
-    double freq;
-    T mincutoff, beta, dcutoff;
+    double freq, mincutoff;
+    T beta, dcutoff;
   private:
     T alpha(T cutoff) {
       T tau = 1.0 / (2 * M_PI * cutoff);

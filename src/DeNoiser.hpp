@@ -23,10 +23,17 @@ class DeNoiser
   public :
     DeNoiser()
       : one_euro{INIT_FREQ,
-                 T{INIT_AMOUNT},
+                 INIT_AMOUNT,
                  T{INIT_BETA},
                  T{INIT_DCUTOFF}}
     {}
+
+//    std::vector<T> operator*(const std::vector<T> v, const double d)
+////    {
+////      // for (auto i : v) i = d;
+
+////      return v;
+////    }
 
     T operator()(T val)
     {
@@ -42,7 +49,7 @@ class DeNoiser
         amount = 0.0001;
       }
 
-      one_euro.mincutoff = static_cast<T>(10 - amount);
+      one_euro.mincutoff = 10 - amount;
     }
 
     void set1eFreq(double freq = INIT_FREQ)
