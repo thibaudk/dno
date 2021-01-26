@@ -28,13 +28,6 @@ class DeNoiser
                  T{INIT_DCUTOFF}}
     {}
 
-//    std::vector<T> operator*(const std::vector<T> v, const double d)
-////    {
-////      // for (auto i : v) i = d;
-
-////      return v;
-////    }
-
     T operator()(T val)
     {
       return one_euro(val);
@@ -68,5 +61,5 @@ class DeNoiser
     }
 
   protected :
-    one_euro_filter<T> one_euro;
+    one_euro::filter<T> one_euro;
 };
