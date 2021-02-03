@@ -8,17 +8,6 @@ For details, see http://www.lifl.fr/~casiez/1euro
 */
 
 #include <cmath>
-#include <array>
-
-namespace one_euro
-{
-template <typename T = double>
-std::array<T, T->size_t> operator * (std::array<T, T->size_t> v, float d)
-{
-  // for (T i : v) i = d;
-
-  return v;
-}
 
 template <typename T = double>
 class low_pass_filter
@@ -32,7 +21,7 @@ class low_pass_filter
 
       if (hadprev)
       {
-        hatx = alpha * x + (1-alpha) * hatxprev;
+        hatx = alpha * x + (1 - alpha) * hatxprev;
       } else
       {
         hatx = x;
@@ -48,28 +37,28 @@ class low_pass_filter
     bool hadprev;
 };
 
-template <typename T = double, typename timestamp_t = double>
-struct filter
+template <typename T = double/*, typename timestamp_t = double*/>
+struct 1efilter
 {
-    filter(double _freq, double _mincutoff, T _beta, T _dcutoff) :
-      freq{_freq}, mincutoff{_mincutoff}, beta{_beta}, dcutoff{_dcutoff}, last_time_{-1} {}
+    1efilter(double _freq, double _mincutoff, T _beta, T _dcutoff) :
+      freq{_freq}, mincutoff{_mincutoff}, beta{_beta}, dcutoff{_dcutoff}/*, last_time_{-1}*/ {}
 
     T truc{2};
     T a = truc * 2.f;
 
-    T operator()(T x, timestamp_t t = -1)
+    T operator()(T x/*, timestamp_t t = -1*/)
     {
       T dx{0};
-
+/*
       if (last_time_ != -1 && t != -1 && t != last_time_)
         freq = 1.0 / (t - last_time_);
 
       last_time_ = t;
-
+*/
       if (xfilt_.hadprev)
         dx = xfilt_.xprev * freq;
 
-      T edx{dxfilt_(dx, alpha(dcutoff))};
+      T edx = dxfilt_(dx, alpha(dcutoff));
       T cutoff = mincutoff + beta * std::abs(static_cast<double>(edx));
 
       return xfilt_(x, alpha(cutoff));
@@ -81,13 +70,12 @@ struct filter
   private:
     T alpha(T cutoff)
     {
-      T tau = 1.0 / (2 * M_PI * cutoff);
-      T te = 1.0 / freq;
+      T tau{1.0 / (2 * M_PI * cutoff)};
+      T te{1.0 / freq};
 
       return 1.0 / (1.0 + tau / te);
     }
 
-    timestamp_t last_time_;
+    //timestamp_t last_time_;
     low_pass_filter<T> xfilt_, dxfilt_;
 };
-}

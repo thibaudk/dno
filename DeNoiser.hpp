@@ -61,5 +61,5 @@ class DeNoiser
     }
 
   protected :
-    one_euro::filter<T> one_euro;
+    1efilter<T> one_euro;
 };
