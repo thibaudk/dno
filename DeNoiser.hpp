@@ -1,5 +1,5 @@
 #pragma once
-#include "../include/1efilter.hpp"
+#include "include/1efilter.hpp"
 
 /*
  * For more information about "the one euro filter"
@@ -37,10 +37,7 @@ class DeNoiser
     {
       amount *= 10;
 
-      if (amount <= 0)
-      {
-        amount = 0.0001;
-      }
+      if (amount <= 0) amount = 0.0001;
 
       one_euro.mincutoff = 10 - amount;
     }
@@ -61,5 +58,5 @@ class DeNoiser
     }
 
   protected :
-    1efilter<T> one_euro;
+    one_euro_filter<T> one_euro;
 };

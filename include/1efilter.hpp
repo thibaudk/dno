@@ -8,6 +8,7 @@ For details, see http://www.lifl.fr/~casiez/1euro
 */
 
 #include <cmath>
+#include "filterBase.hpp"
 
 template <typename T = double>
 class low_pass_filter
@@ -38,9 +39,9 @@ class low_pass_filter
 };
 
 template <typename T = double/*, typename timestamp_t = double*/>
-struct 1efilter
+struct one_euro_filter
 {
-    1efilter(double _freq, double _mincutoff, T _beta, T _dcutoff) :
+    one_euro_filter(double _freq, double _mincutoff, T _beta, T _dcutoff) :
       freq{_freq}, mincutoff{_mincutoff}, beta{_beta}, dcutoff{_dcutoff}/*, last_time_{-1}*/ {}
 
     T truc{2};
