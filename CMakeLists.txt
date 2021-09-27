@@ -8,7 +8,7 @@ target_include_directories(dno INTERFACE
   $<INSTALL_INTERFACE:include>
 )
 
-target_compile_features(dno INTERFACE cxx_std_17)
+target_compile_features(dno INTERFACE cxx_std_20)
 
 include(GenerateExportHeader)
 generate_export_header(dno)
