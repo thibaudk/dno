@@ -2,16 +2,18 @@
 Simple moving average filter
 */
 
-#include <cmath>
+#include "filter_base.hpp"
 #include <boost/circular_buffer.hpp>
 
+namespace value_filters {
+
 template <typename T = double>
-class floating_average
+class floating_average : filter_base<T>
 {
 public :
-  floating_average() : nVal{10}
+  floating_average()
   {
-      setAmount(nVal);
+      setAmount(10);
   }
 
     T operator()(T x)
@@ -33,6 +35,6 @@ public :
 
 private:
     boost::circular_buffer<T> buffer;
-    size_t nVal;
 };
 
+}

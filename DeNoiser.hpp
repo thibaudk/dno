@@ -1,4 +1,5 @@
 #pragma once
+#include "include/filter_base.hpp"
 #include "include/1efilter.hpp"
 #include "include/average.hpp"
 #include "include/median.hpp"
@@ -13,33 +14,41 @@
  * fcmin."
  *
  */
+namespace dno {
+
+enum type { OneEuro = 0, LowPass, Average, Median };
+
+using namespace::value_filters;
 
 template <typename T = double>
 class DeNoiser
 {
 public :
   DeNoiser()
-    : filter{one_euro_filter<T>{}}
-  {}
+    : filters{}
+  {
+    filter = std::get<0>(filters); // initialize with one euro filter
+  }
 
-  enum type { OneEuro = 0, Average, Median };
+  type currentType{OneEuro};
 
-  type currentType{DeNoiser::OneEuro};
-
-  void setType(DeNoiser::type t = OneEuro)
+  void setType(type t = OneEuro)
   {
     if (t != currentType)
     {
       switch (t)
       {
+      case LowPass :
+        filter = std::get<1>(filters);
+        break;
       case Average :
-        filter.emplace<1>(floating_average<T>{});
+        filter = std::get<2>(filters);
         break;
       case Median :
-        filter.emplace<2>(floating_median<T>{});
+        filter = std::get<3>(filters);
         break;
       default:
-        filter.emplace<0>(one_euro_filter<T>{});
+        filter = std::get<0>(filters);
         break;
       }
 
@@ -47,49 +56,39 @@ public :
     }
   }
 
-  T operator()(T val)
-  {
-    return std::get<0>(filter)(val);
-  }
+  T operator()(T val) { filter(val); }
 
   void setAmount(double amount)
   {
     amount *= 10.; // expects values between 0 and 1
-
-    switch (currentType)
-    {
-    case Average :
-      std::get<1>(filter).setAmount(amount);
-      break;
-    case Median :
-      std::get<2>(filter).setAmount(amount);
-      break;
-    default:
-      std::get<0>(filter).setAmount(amount);
-      break;
-    }
+    filter.setAmount(amount);
   }
 
-  void set1eFreq(const double& freq)
+  void set1eFreq(const double& freq) // 1e & LP
   {
-    if (currentType == OneEuro)
-      std::get<0>(filter).frequency = freq;
+    if (currentType < 2)
+      filter.freq = freq;
   }
 
-  void set1eBeta(const double& beta)
+  void set1eDcutOff(const double& cutoff) // 1e & LP
   {
-    if (currentType == OneEuro)
-      std::get<0>(filter).beta = beta;
+    if (currentType < 2)
+      filter.dcutoff = cutoff;
   }
 
-  void set1eDcutOff(const double& cutoff)
+  void set1eBeta(const double& beta) // 1e only
   {
     if (currentType == OneEuro)
-      std::get<0>(filter).dcutoff = cutoff;
+      filter.beta = beta;
   }
 
 protected :
   std::variant<one_euro_filter<T>,
+  low_pass_filter<T>,
   floating_average<T>,
-  floating_median<T>> filter;
+  floating_median<T>> filters;
+
+  filter_base<T> filter;
 };
+
+}

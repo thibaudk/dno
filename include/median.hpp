@@ -2,11 +2,13 @@
 Simple moving median filter
 */
 
-#include <cmath>
+#include "filter_base.hpp"
 #include <boost/circular_buffer.hpp>
 
+namespace value_filters {
+
 template <typename T = double>
-class floating_median
+class floating_median : filter_base<T>
 {
 public :
   floating_median()
@@ -15,7 +17,7 @@ public :
   }
 
     T operator()(T x)
-    {
+    { 
       if (x < min)
       {
         buffer.push_front(x);
@@ -43,7 +45,7 @@ public :
 
     void setAmount(double amt)
     {
-      if (amt <= 1) amt = 1;
+      if (amt <= 2) amt = 2;
       buffer.set_capacity(amt);
     };
 
@@ -51,3 +53,5 @@ private:
     boost::circular_buffer<T> buffer{0};
     T min{0}, max{0};
 };
+
+}
