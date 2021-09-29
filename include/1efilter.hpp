@@ -12,11 +12,11 @@ For details, see http://www.lifl.fr/~casiez/1euro
 namespace value_filters {
 
 template <typename T = double>
-class low_pass_filter
+class low_pass_filter : public filter_base<T>
 {
 public :
   low_pass_filter(double _freq = 120., double _dcutoff = 1.)
-    : hatxprev{0}, xprev{0}, freq{_freq}, dcutoff{_dcutoff}, hadprev{false}
+    : hatxprev{0}, xprev{0}, alpha{0}, hadprev{false}
   {
     setAlpha();
   }
@@ -62,14 +62,14 @@ private:
   void computeAlpha()
   {
     T tau = 1. / (2 * M_PI * dcutoff);
-    T te = 1. / freq;
+    double te = 1. / freq;
 
     alpha = 1.0 / (1.0 + tau / te);
   }
 };
 
 template <typename T = double/*, typename timestamp_t = double*/>
-struct one_euro_filter : filter_base<T>
+struct one_euro_filter : public filter_base<T>
 {
   one_euro_filter(double _freq = 120., double _mincutoff = 1., double _beta = 1., double _dcutoff = 1.) :
     freq{_freq}, mincutoff{_mincutoff}, beta{_beta}, dcutoff{_dcutoff}
@@ -88,6 +88,7 @@ struct one_euro_filter : filter_base<T>
 
     xfilt_.setAlpha(cutoff, freq);
     return xfilt_(x);
+    return x;
   }
 
   double freq, beta, dcutoff;

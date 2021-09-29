@@ -32,7 +32,7 @@ public :
 
   type currentType{OneEuro};
 
-  void setType(type t = OneEuro)
+  void setType(const type& t = OneEuro)
   {
     if (t != currentType)
     {
@@ -50,9 +50,9 @@ public :
       default:
         filter = std::get<0>(filters);
         break;
-      }
 
-      currentType = t;
+        currentType = t;
+      }
     }
   }
 

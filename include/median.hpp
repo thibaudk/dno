@@ -8,7 +8,7 @@ Simple moving median filter
 namespace value_filters {
 
 template <typename T = double>
-class floating_median : filter_base<T>
+class floating_median : public filter_base<T>
 {
 public :
   floating_median()

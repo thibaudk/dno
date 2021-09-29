@@ -8,7 +8,7 @@ Simple moving average filter
 namespace value_filters {
 
 template <typename T = double>
-class floating_average : filter_base<T>
+class floating_average : public filter_base<T>
 {
 public :
   floating_average()
