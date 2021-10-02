@@ -3,14 +3,12 @@ Simple moving average filter
 */
 
 #include "filter_base.hpp"
-#include <boost/circular_buffer.hpp>
 
 namespace value_filters {
 
 template <typename T = double>
-class floating_average : public filter_base<T>
+struct floating_average : public filter_base<T>
 {
-public :
   floating_average()
   {
       setAmount(10);
@@ -20,21 +18,18 @@ public :
     {
       T sum{0};
 
-      buffer.push_back(x);
+      this->buffer.push_back(x);
 
-      for (T v : buffer) sum += v;
+      for (T v : this->buffer) sum += v;
 
-      return sum / buffer.size();
+      return sum / this->buffer.size();
     }
 
     void setAmount(double amt)
     {
       if (amt <= 1) amt = 1;
-      buffer.set_capacity(amt);
+      this->buffer.set_capacity(amt);
     };
-
-private:
-    boost::circular_buffer<T> buffer;
 };
 
 }

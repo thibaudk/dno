@@ -7,12 +7,12 @@ omiting timestamps
 For details, see http://www.lifl.fr/~casiez/1euro
 */
 
-#include "filter_base.hpp"
+#include <cmath>
 
 namespace value_filters {
 
 template <typename T = double>
-class low_pass_filter : public filter_base<T>
+class low_pass_filter
 {
 public :
   low_pass_filter(double _freq = 120., double _dcutoff = 1.)
@@ -28,7 +28,8 @@ public :
     if (hadprev)
     {
       hatx = alpha * x + (1 - alpha) * hatxprev;
-    } else
+    }
+    else
     {
       hatx = x;
       hadprev = true;
@@ -68,8 +69,8 @@ private:
   }
 };
 
-template <typename T = double/*, typename timestamp_t = double*/>
-struct one_euro_filter : public filter_base<T>
+template <typename T = double>
+struct one_euro_filter
 {
   one_euro_filter(double _freq = 120., double _mincutoff = 1., double _beta = 1., double _dcutoff = 1.) :
     freq{_freq}, mincutoff{_mincutoff}, beta{_beta}, dcutoff{_dcutoff}
@@ -84,11 +85,10 @@ struct one_euro_filter : public filter_base<T>
 
     dxfilt_.setAlpha(dcutoff, freq);
     T edx = dxfilt_(dx);
-    T cutoff = mincutoff + beta * std::abs(edx);
+    T cutoff = mincutoff + beta * std::abs(static_cast<double>(edx));
 
     xfilt_.setAlpha(cutoff, freq);
     return xfilt_(x);
-    return x;
   }
 
   double freq, beta, dcutoff;

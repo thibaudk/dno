@@ -1,18 +1,19 @@
 /*(utf8)
-Simple moving median filter
+Only provides members to fit the 1eFilter
 */
+
 #pragma once
+#include <boost/circular_buffer.hpp>
 
 namespace value_filters {
 
 template <typename T = double>
-struct filter_base
+class filter_base
 {
-  T operator()(T x) {}
-  void setAmount(double amt){}
-  double freq;
-  double beta;
-  double dcutoff;
+public :
+  double freq{}, dcutoff{};
+protected :
+  boost::circular_buffer<T> buffer{0};
 };
 
 }
