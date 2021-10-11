@@ -7,18 +7,27 @@ omiting timestamps
 For details, see http://www.lifl.fr/~casiez/1euro
 */
 
-#include <cmath>
+#include "filter_base.hpp"
 
-namespace value_filters {
+#include <boost/math/constants/constants.hpp>
 
+#define INIT_FREQ 120.
+#define INIT_CUTOFF 1.
+#define INIT_MIN 1.
+#define INIT_BETA 1.
+
+using namespace boost::math::constants;
+
+namespace value_filters
+{
 template <typename T = double>
 class low_pass_filter
 {
-public :
-  low_pass_filter(double _freq = 120., double _dcutoff = 1.)
-    : hatxprev{0}, xprev{0}, alpha{0}, hadprev{false}
+public:
+  low_pass_filter(double _freq = INIT_FREQ, double _dcutoff = INIT_CUTOFF)
+      : hatxprev {0}, xprev {0}, alpha {0}, hadprev {false}
   {
-    setAlpha();
+    set_alpha(_freq, _dcutoff);
   }
 
   T operator()(T x)
@@ -40,29 +49,32 @@ public :
     return hatx;
   }
 
-  T xprev;
-  bool hadprev;
-  double freq, dcutoff;
+  T xprev {};
+  bool hadprev {};
+  double dcutoff {}, freq {};
 
-  void setAlpha(double cutoff = 1., double _freq = 120.)
+  void set_alpha(double cutoff, double _freq)
   {
     dcutoff = cutoff;
     freq = _freq;
-    computeAlpha();
+    compute_alpha();
   }
 
-  void setAmount(double amt)
+  void set_amount(double amt)
   {
-    if (amt <= 0.) amt = 0.0001;
-    setAlpha(10. - amt); // mincutoff is basicly the inverse of the amount of filtering
+    if (amt <= 0.)
+      amt = 0.0001;
+    set_alpha(
+        SCALED_AMOUNT - amt,
+        freq); // mincutoff is basicly the inverse of the amount of filtering
   }
 
 private:
   T hatxprev, alpha;
 
-  void computeAlpha()
+  void compute_alpha()
   {
-    T tau = 1. / (2 * M_PI * dcutoff);
+    T tau = one_div_two_pi<double>() * (1. / dcutoff);
     double te = 1. / freq;
 
     alpha = 1.0 / (1.0 + tau / te);
@@ -72,37 +84,43 @@ private:
 template <typename T = double>
 struct one_euro_filter
 {
-  one_euro_filter(double _freq = 120., double _mincutoff = 1., double _beta = 1., double _dcutoff = 1.) :
-    freq{_freq}, mincutoff{_mincutoff}, beta{_beta}, dcutoff{_dcutoff}
-  {}
+  one_euro_filter(
+      double _freq = INIT_FREQ, double _mincutoff = INIT_MIN,
+      double _beta = INIT_BETA, double _dcutoff = INIT_CUTOFF)
+      : freq {_freq}, mincutoff {_mincutoff}, beta {_beta}, dcutoff {_dcutoff}
+  {
+  }
 
   T operator()(T x)
   {
-    T dx{0};
+    T dx {0};
 
     if (xfilt_.hadprev)
       dx = xfilt_.xprev * freq;
 
-    dxfilt_.setAlpha(dcutoff, freq);
+    dxfilt_.set_alpha(dcutoff, freq);
     T edx = dxfilt_(dx);
     T cutoff = mincutoff + beta * std::abs(static_cast<double>(edx));
 
-    xfilt_.setAlpha(cutoff, freq);
+    xfilt_.set_alpha(cutoff, freq);
     return xfilt_(x);
   }
 
-  double freq, beta, dcutoff;
+  double freq {}, beta {}, dcutoff {};
 
-  void setAmount(double amt)
+  void set_amount(double amt)
   {
-    if (amt <= 0.) amt = 0.0001;
-    mincutoff = 10. - amt; // mincutoff is basicly the inverse of the amount of filtering
+    if (amt <= 0.)
+      amt = 0.0001;
+    mincutoff
+        = SCALED_AMOUNT
+          - amt; // mincutoff is basicly the inverse of the amount of filtering
   };
 
 private:
-  double mincutoff;
+  double mincutoff {};
 
-  low_pass_filter<T> xfilt_, dxfilt_;
+  low_pass_filter<T> xfilt_ {}, dxfilt_ {};
 };
 
 }

@@ -3,6 +3,8 @@
 #include "include/average.hpp"
 #include "include/median.hpp"
 
+#include <variant>
+
 /*
  * For more information about "the one euro filter"
  * please visit https://cristal.univ-lille.fr/~casiez/1euro/
@@ -14,116 +16,109 @@
  *
  */
 
-#define SCALED_AMOUNT 10.
+namespace dno
+{
+enum type
+{
+  OneEuro = 0,
+  LowPass,
+  Average,
+  Median
+};
 
-namespace dno {
-
-enum type { OneEuro = 0, LowPass, Average, Median };
-
-using namespace::value_filters;
+using namespace value_filters;
 
 template <typename T = double>
 class DeNoiser
 {
-public :
-  DeNoiser()
-    : filters{one_euro_filter<T>{}}
-  {}
+public:
+  DeNoiser() : filters {std::in_place_index_t<0> {}, one_euro_filter<T> {}}
+  {
+  }
 
-  inline void setType(const type& t = OneEuro)
+  void set_type(const type& t = OneEuro)
   {
     if (t != filters.index())
     {
       switch (t)
       {
-      case LowPass :
-        filters = low_pass_filter<T>{};
-        break;
-      case Average :
-        filters = floating_average<T>{};
-        break;
-      case Median :
-        filters = floating_median<T>{};
-        break;
-      default:
-        filters = one_euro_filter<T>{};
-        break;
+        case LowPass:
+          filters = low_pass_filter<T> {};
+          break;
+        case Average:
+          filters = floating_average<T> {};
+          break;
+        case Median:
+          filters = floating_median<T> {};
+          break;
+        default:
+          filters = one_euro_filter<T> {};
+          break;
       }
     }
   }
 
   T operator()(T val)
   {
-    std::visit([&val](auto f){ val = f(val); }, filters);
+    std::visit([&val](auto f) { val = f(val); }, filters);
     return val;
   }
 
-  void setAmount(const double& amount)
+  void set_amount(const double& amount)
   {
-    if (currentAmount != amount)
+    if (current_amount != amount)
     {
       // expects values between 0 and 1
       std::visit(
-            [&amount]
-            (auto f)
-      { f.setAmount(amount * SCALED_AMOUNT); },
-      filters);
+          [&amount](auto f) { f.set_amount(amount * SCALED_AMOUNT); }, filters);
 
-      currentAmount = amount;
+      current_amount = amount;
     }
   }
 
-  void setFreq(const double& freq) // 1e & LP
+  void set_freq(const double& freq) // 1e & LP
   {
-    if (currentFreq != freq)
+    if (current_freq != freq)
     {
       if (filters.index() < 2)
-        std::visit(
-              [&freq]
-              (auto f)
-        { f.freq = freq; },
-        filters);
+        std::visit([&freq](auto f) { f.freq = freq; }, filters);
 
-      currentFreq = freq;
+      current_freq = freq;
     }
   }
 
-  void setCutOff(const double& cutoff) // 1e & LP
+  void set_cutoff(const double& cutoff) // 1e & LP
   {
-    if (currentCutoff != cutoff)
+    if (current_cutoff != cutoff)
     {
       if (filters.index() < 2)
-        std::visit(
-              [&cutoff]
-              (auto f)
-        { f.dcutoff = cutoff; },
-        filters);
+        std::visit([&cutoff](auto f) { f.dcutoff = cutoff; }, filters);
 
-      currentCutoff = cutoff;
+      current_cutoff = cutoff;
     }
   }
 
-  void set1eBeta(const double& beta) // 1e only
+  void set_1e_beta(const double& beta) // 1e only
   {
-    if (currentBeta != beta)
+    if (current_beta != beta)
     {
       if (filters.index() == 0)
         std::get<0>(filters).beta = beta;
 
-      currentBeta = beta;
+      current_beta = beta;
     }
   }
 
-protected :
-  double currentAmount;
-  double currentFreq;
-  double currentCutoff;
-  double currentBeta;
+protected:
+  double current_amount;
+  double current_freq;
+  double current_cutoff;
+  double current_beta;
 
-  std::variant<one_euro_filter<T>,
-  low_pass_filter<T>,
-  floating_average<T>,
-  floating_median<T>> filters;
+  std::variant<
+      one_euro_filter<T>, low_pass_filter<T>, floating_average<T>,
+      floating_median<T>>
+      filters;
 };
 
 }
