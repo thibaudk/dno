@@ -1,10 +1,15 @@
 /*(utf8)
-This is a slight tweek of the
-1€ Filter, template-compliant version
-by Jonathan Aceituno <join@oin.name>
-omiting timestamps
-
-For details, see http://www.lifl.fr/~casiez/1euro
+ * This is a slight tweek of the
+ * 1€ Filter, template-compliant version
+ * by Jonathan Aceituno <join@oin.name>
+ * omiting timestamps, alowing for interger input,
+ * and giving independant access to the lowpass filter.
+ *
+ * For details, see http://www.lifl.fr/~casiez/1euro
+ * * quote * "Note that parameters fcmin and beta have clear
+ * conceptual relationships: if high speed lag is a problem,
+ * increase beta; if slow speed jitter is a problem, decrease
+ * fcmin."
 */
 
 #include "filter_base.hpp"
@@ -32,7 +37,7 @@ public:
 
   T operator()(T x)
   {
-    T hatx;
+    T hatx {0};
 
     if (hadprev)
     {
@@ -77,7 +82,7 @@ private:
     T tau = one_div_two_pi<double>() * (1. / dcutoff);
     double te = 1. / freq;
 
-    alpha = 1.0 / (1.0 + tau / te);
+    alpha = 1. / (1. + tau / te);
   }
 };
 
@@ -96,7 +101,7 @@ struct one_euro_filter
     T dx {0};
 
     if (xfilt_.hadprev)
-      dx = xfilt_.xprev * freq;
+      dx = (x - xfilt_.xprev) * freq;
 
     dxfilt_.set_alpha(dcutoff, freq);
     T edx = dxfilt_(dx);
@@ -112,9 +117,8 @@ struct one_euro_filter
   {
     if (amt <= 0.)
       amt = 0.0001;
-    mincutoff
-        = SCALED_AMOUNT
-          - amt; // mincutoff is basicly the inverse of the amount of filtering
+    mincutoff = SCALED_AMOUNT - amt;
+    // mincutoff is basicly the inverse of the amount of filtering
   };
 
 private:

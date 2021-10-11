@@ -5,17 +5,6 @@
 
 #include <variant>
 
-/*
- * For more information about "the one euro filter"
- * please visit https://cristal.univ-lille.fr/~casiez/1euro/
- *
- * * quote * "Note that parameters fcmin and beta have clear
- * conceptual relationships: if high speed lag is a problem,
- * increase beta; if slow speed jitter is a problem, decrease
- * fcmin."
- *
- */
-
 namespace dno
 {
 enum type
@@ -36,7 +25,7 @@ public:
   {
   }
 
-  void set_type(const type& t = OneEuro)
+  inline constexpr void set_type(const type& t = OneEuro) noexcept
   {
     if (t != filters.index())
     {
@@ -60,8 +49,7 @@ public:
 
   T operator()(T val)
   {
-    std::visit([&val](auto f) { val = f(val); }, filters);
-    return val;
+    return std::visit([val](auto f) { return f(val); }, filters);
   }
 
   void set_amount(const double& amount)
@@ -110,13 +98,15 @@ public:
   }
 
 protected:
-  double current_amount;
-  double current_freq;
-  double current_cutoff;
-  double current_beta;
+  double current_amount,
+  current_freq,
+  current_cutoff,
+  current_beta;
 
   std::variant<
-      one_euro_filter<T>, low_pass_filter<T>, floating_average<T>,
+      one_euro_filter<T>,
+      low_pass_filter<T>,
+      floating_average<T>,
       floating_median<T>>
       filters;
 };
