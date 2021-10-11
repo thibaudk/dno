@@ -49,44 +49,44 @@ public:
 
   T operator()(T val)
   {
-    return std::visit([val](auto f) { return f(val); }, filters);
+    return std::visit([val](auto& f) { return f(val); }, filters);
   }
 
-  void set_amount(const double& amount)
+  void set_amount(double amount)
   {
     if (current_amount != amount)
     {
       // expects values between 0 and 1
       std::visit(
-          [&amount](auto f) { f.set_amount(amount * SCALED_AMOUNT); }, filters);
+          [amount](auto& f) { f.set_amount(amount * SCALED_AMOUNT); }, filters);
 
       current_amount = amount;
     }
   }
 
-  void set_freq(const double& freq) // 1e & LP
+  void set_freq(double freq) // 1e & LP
   {
     if (current_freq != freq)
     {
       if (filters.index() < 2)
-        std::visit([&freq](auto f) { f.freq = freq; }, filters);
+        std::visit([freq](auto& f) { f.freq = freq; }, filters);
 
       current_freq = freq;
     }
   }
 
-  void set_cutoff(const double& cutoff) // 1e & LP
+  void set_cutoff(double cutoff) // 1e & LP
   {
     if (current_cutoff != cutoff)
     {
       if (filters.index() < 2)
-        std::visit([&cutoff](auto f) { f.dcutoff = cutoff; }, filters);
+        std::visit([cutoff](auto& f) { f.dcutoff = cutoff; }, filters);
 
       current_cutoff = cutoff;
     }
   }
 
-  void set_1e_beta(const double& beta) // 1e only
+  void set_1e_beta(double beta) // 1e only
   {
     if (current_beta != beta)
     {
