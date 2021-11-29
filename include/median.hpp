@@ -10,7 +10,6 @@ namespace value_filters
 template <typename T = double>
 class floating_median : public filter_base<T>
 {
-  T min {0}, max {0};
 
 public:
   floating_median()
@@ -20,16 +19,39 @@ public:
 
   T operator()(T x)
   {
-    if (x < min)
+    if (this->buffer.full)
     {
-      this->buffer.push_front(x);
-      min = x;
+      if (x <= min)
+      {
+        this->buffer.first() = x;
+        min = x;
+      }
+      else if (x >= max)
+      {
+        this->buffer.last() = x;
+        max = x;
+      }
+      else
+        this->buffer[find_index_to_sort(x)] = x;
     }
-
-    if (x > max)
-    {
+    else if (this->buffer.isEmpty())
+    { // handle initial values
       this->buffer.push_back(x);
+      min = x;
       max = x;
+    }
+    else
+    {
+      if (x <= min)
+      {
+        this->buffer.push_front(x);
+        min = x;
+      }
+      else if (x >= max)
+      {
+        this->buffer.push_back(x);
+        max = x;
+      }
     }
 
     if (this->buffer.size() % 2 == 0)
@@ -51,6 +73,18 @@ public:
       amt = 2;
     this->buffer.set_capacity(amt);
   };
+
+private:
+  T min {0}, max {0};
+
+  unsigned int find_index_to_sort(T value)
+  {
+    for (unsigned int i = 1; ; i++)
+    {
+      if (value >= this->buffer[i] && value < this->buffer[i + 1])
+        return i;
+    }
+  }
 };
 
 }
