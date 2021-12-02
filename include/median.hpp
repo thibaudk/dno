@@ -2,6 +2,9 @@
 Simple moving median filter
 */
 
+#include <cmath>
+#include <boost/container/flat_map.hpp>
+
 #include "filter_base.hpp"
 
 namespace value_filters
@@ -12,79 +15,55 @@ class floating_median : public filter_base<T>
 {
 
 public:
-  floating_median()
-  {
-    set_amount(SCALED_AMOUNT);
-  }
+  floating_median() {}
 
   T operator()(T x)
   {
-    if (this->buffer.full)
+    if (!std::isnan(x) || !std::isinf(x))
     {
-      if (x <= min)
-      {
-        this->buffer.first() = x;
-        min = x;
-      }
-      else if (x >= max)
-      {
-        this->buffer.last() = x;
-        max = x;
-      }
-      else
-        this->buffer[find_index_to_sort(x)] = x;
-    }
-    else if (this->buffer.isEmpty())
-    { // handle initial values
-      this->buffer.push_back(x);
-      min = x;
-      max = x;
-    }
-    else
-    {
-      if (x <= min)
-      {
-        this->buffer.push_front(x);
-        min = x;
-      }
-      else if (x >= max)
-      {
-        this->buffer.push_back(x);
-        max = x;
-      }
+      buffer[x] = date;
+
+      if (buffer.size() > capacity)
+        for (auto it = buffer.begin(); it < buffer.end(); it++)
+          if (it->second <= (date - capacity))
+          {
+            buffer.erase(it);
+            break;
+          }
+
+      date++;
     }
 
-    if (this->buffer.size() % 2 == 0)
+    if (buffer.size() % 2 == 0)
     {
-      unsigned int middle = this->buffer.size() / 2;
-      T mid1 = this->buffer[middle--];
-      T mid2 = this->buffer[middle];
+      int middle = buffer.size() / 2;
+      auto mid1 = buffer.nth(middle--)->first;
+      auto mid2 = buffer.nth(middle)->first;
       return (mid1 + mid2) / 2.;
     }
     else
     {
-      return this->buffer[(this->buffer.size() / 2)];
+      return buffer.nth(buffer.size() / 2)->first;
     }
   }
 
   void set_amount(double amt)
   {
-    if (amt <= 2)
-      amt = 2;
-    this->buffer.set_capacity(amt);
+    if (amt < 1)
+      amt = 1;
+
+    capacity = amt;
+
+    if (buffer.size() > capacity)
+      for (auto it = buffer.begin(); it < buffer.end(); it++)
+        if (it->second <= (date - capacity))
+          buffer.erase(it);
   };
 
 private:
-  T min {0}, max {0};
+  boost::container::flat_map<T, int> buffer{};
 
-  unsigned int find_index_to_sort(T value)
-  {
-    for (unsigned int i = 1; ; i++)
-    {
-      if (value >= this->buffer[i] && value < this->buffer[i + 1])
-        return i;
-    }
-  }
+  int date{0}, capacity{static_cast<int>(SCALED_AMOUNT)};
 };
 
 }

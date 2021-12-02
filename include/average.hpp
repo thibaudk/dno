@@ -3,13 +3,16 @@ Simple moving average filter
 */
 
 #include "filter_base.hpp"
+#include <boost/circular_buffer.hpp>
 
 namespace value_filters
 {
 
 template <typename T = double>
-struct floating_average : public filter_base<T>
+class floating_average : public filter_base<T>
 {
+
+public:
   floating_average()
   {
     set_amount(SCALED_AMOUNT);
@@ -33,6 +36,9 @@ struct floating_average : public filter_base<T>
       amt = 1;
     this->buffer.set_capacity(amt);
   };
+
+private:
+  boost::circular_buffer<T> buffer {0};
 };
 
 }
