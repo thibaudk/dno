@@ -67,11 +67,7 @@ public:
 
   void set_amount(double amt)
   {
-    if (amt <= 0.)
-      amt = 0.0001;
-    set_alpha(
-        SCALED_AMOUNT - amt,
-        freq); // mincutoff is basicly the inverse of the amount of filtering
+    set_alpha(pow(1 / (1 + amt), 2), freq);
   }
 
 private:
@@ -115,10 +111,9 @@ struct one_euro_filter
 
   void set_amount(double amt)
   {
-    if (amt <= 0.)
-      amt = 0.0001;
-    mincutoff = SCALED_AMOUNT - amt;
+    if (amt <= 0.) amt = 0.0001;
     // mincutoff is basicly the inverse of the amount of filtering
+    mincutoff = SCALED_AMOUNT - amt;
   };
 
 private:
