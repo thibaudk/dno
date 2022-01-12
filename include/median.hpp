@@ -58,7 +58,11 @@ public:
       for (auto it = buffer.begin(); it < buffer.end(); it++)
         if (it->second <= (date - capacity))
           buffer.erase(it);
-  };
+  }
+
+  void update()
+  {
+  }
 
 private:
   boost::container::flat_map<T, int> buffer{};

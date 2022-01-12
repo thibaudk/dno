@@ -35,7 +35,12 @@ public:
     if (amt <= 1)
       amt = 1;
     this->buffer.set_capacity(amt);
-  };
+  }
+
+  void update()
+  {
+
+  }
 
 private:
   boost::circular_buffer<T> buffer {0};

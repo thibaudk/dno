@@ -21,7 +21,7 @@ template <typename T = double>
 class DeNoiser
 {
 public:
-  DeNoiser() : filters {std::in_place_index_t<0> {}, one_euro_filter<T> {}}
+  DeNoiser() : filters {std::in_place_index_t<0> {}}
   {
   }
 
@@ -47,7 +47,7 @@ public:
     }
   }
 
-  T operator()(T val)
+  T operator()(const T& val)
   {
     return std::visit([val](auto& f) { return f(val); }, filters);
   }
@@ -69,7 +69,10 @@ public:
     if (current_freq != freq)
     {
       if (filters.index() < 2)
-        std::visit([freq](auto& f) { f.freq = freq; }, filters);
+        std::visit([freq, this](auto& f) {
+          f.freq = freq;
+          f.update();
+        }, filters);
 
       current_freq = freq;
     }
@@ -80,7 +83,10 @@ public:
     if (current_cutoff != cutoff)
     {
       if (filters.index() < 2)
-        std::visit([cutoff](auto& f) { f.dcutoff = cutoff; }, filters);
+        std::visit([cutoff](auto& f) {
+          f.dcutoff = cutoff;
+          f.update();
+        }, filters);
 
       current_cutoff = cutoff;
     }
@@ -91,17 +97,21 @@ public:
     if (current_beta != beta)
     {
       if (filters.index() == 0)
-        std::get<0>(filters).beta = beta;
+      {
+        auto& f = std::get<0>(filters);
+        f.beta = beta;
+        f.update();
+      }
 
       current_beta = beta;
     }
   }
 
 protected:
-  double current_amount,
-  current_freq,
-  current_cutoff,
-  current_beta;
+  double current_amount{},
+  current_freq{},
+  current_cutoff{},
+  current_beta{};
 
   std::variant<
       one_euro_filter<T>,
