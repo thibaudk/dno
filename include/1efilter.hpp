@@ -70,8 +70,13 @@ public:
     set_alpha(pow(1 / (1 + amt), 2), freq);
   }
 
+  void update()
+  {
+    compute_alpha();
+  }
+
 private:
-  T hatxprev, alpha;
+  T hatxprev{}, alpha{};
 
   void compute_alpha()
   {
@@ -88,7 +93,7 @@ struct one_euro_filter
   one_euro_filter(
       double _freq = INIT_FREQ, double _mincutoff = INIT_MIN,
       double _beta = INIT_BETA, double _dcutoff = INIT_CUTOFF)
-      : freq {_freq}, mincutoff {_mincutoff}, beta {_beta}, dcutoff {_dcutoff}
+      : freq {_freq}, beta {_beta}, dcutoff {_dcutoff}, mincutoff {_mincutoff}
   {
   }
 
@@ -114,8 +119,11 @@ struct one_euro_filter
     if (amt <= 0.) amt = 0.0001;
     // mincutoff is basicly the inverse of the amount of filtering
     mincutoff = SCALED_AMOUNT - amt;
-  };
+  }
 
+  void update()
+  {
+  }
 private:
   double mincutoff {};
 
