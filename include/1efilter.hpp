@@ -26,11 +26,11 @@ using namespace boost::math::constants;
 namespace value_filters
 {
 template <typename T = double>
-class low_pass_filter
+class low_pass_filter : public filter_base<T>
 {
 public:
   low_pass_filter(double _freq = INIT_FREQ, double _dcutoff = INIT_CUTOFF)
-      : hatxprev {0}, xprev {0}, alpha {0}, hadprev {false}
+      : xprev {0}, hadprev {false}, hatxprev {0}, alpha {0}
   {
     set_alpha(_freq, _dcutoff);
   }
@@ -56,18 +56,17 @@ public:
 
   T xprev {};
   bool hadprev {};
-  double dcutoff {}, freq {};
 
   void set_alpha(double cutoff, double _freq)
   {
-    dcutoff = cutoff;
-    freq = _freq;
+    this->dcutoff = cutoff;
+    this->freq = _freq;
     compute_alpha();
   }
 
   void set_amount(double amt)
   {
-    set_alpha(pow(1 / (1 + amt), 2), freq);
+    set_alpha(pow(1 / (1 + amt), 2), this->freq);
   }
 
   void update()
@@ -80,20 +79,21 @@ private:
 
   void compute_alpha()
   {
-    T tau = one_div_two_pi<double>() * (1. / dcutoff);
-    double te = 1. / freq;
+    T tau = one_div_two_pi<double>() * (1. / this->dcutoff);
+    double te = 1. / this->freq;
 
     alpha = 1. / (1. + tau / te);
   }
 };
 
 template <typename T = double>
-struct one_euro_filter
+struct one_euro_filter : public filter_base<T>
 {
   one_euro_filter(
       double _freq = INIT_FREQ, double _mincutoff = INIT_MIN,
       double _beta = INIT_BETA, double _dcutoff = INIT_CUTOFF)
-      : freq {_freq}, beta {_beta}, dcutoff {_dcutoff}, mincutoff {_mincutoff}
+      : filter_base<T> (_freq, _dcutoff)
+      , beta {_beta}, mincutoff {_mincutoff}
   {
   }
 
@@ -102,17 +102,17 @@ struct one_euro_filter
     T dx {0};
 
     if (xfilt_.hadprev)
-      dx = (x - xfilt_.xprev) * freq;
+      dx = (x - xfilt_.xprev) * this->freq;
 
-    dxfilt_.set_alpha(dcutoff, freq);
+    dxfilt_.set_alpha(this->dcutoff, this->freq);
     T edx = dxfilt_(dx);
     T cutoff = mincutoff + beta * std::abs(static_cast<double>(edx));
 
-    xfilt_.set_alpha(cutoff, freq);
+    xfilt_.set_alpha(cutoff, this->freq);
     return xfilt_(x);
   }
 
-  double freq {}, beta {}, dcutoff {};
+  double beta {};
 
   void set_amount(double amt)
   {
@@ -121,9 +121,6 @@ struct one_euro_filter
     mincutoff = SCALED_AMOUNT - amt;
   }
 
-  void update()
-  {
-  }
 private:
   double mincutoff {};
 

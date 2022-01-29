@@ -60,10 +60,6 @@ public:
           buffer.erase(it);
   }
 
-  void update()
-  {
-  }
-
 private:
   boost::container::flat_map<T, int> buffer{};
 

@@ -12,7 +12,17 @@ namespace value_filters
 template <typename T = double>
 struct filter_base
 {
+  filter_base() = default;
+  filter_base(double _freq, double _dcutoff)
+      : freq {_freq}, dcutoff {_dcutoff}
+  {
+  }
+
   double freq {}, dcutoff {};
+
+  void update()
+  {
+  }
 };
 
 }

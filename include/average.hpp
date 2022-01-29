@@ -37,11 +37,6 @@ public:
     this->buffer.set_capacity(amt);
   }
 
-  void update()
-  {
-
-  }
-
 private:
   boost::circular_buffer<T> buffer {0};
 };
